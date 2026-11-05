@@ -49,7 +49,12 @@ final class Line: ObservableObject {
     /// uses them to only catch clicks over photos and let the rest through.
     var hitRects: [UUID: CGRect] = [:]
 
-    var maxItems = 8
+    var maxItems = 8 {
+        didSet {
+            if maxItems != oldValue, liveCount >= maxItems { onCapacityReached?(maxItems) }
+        }
+    }
+    var onCapacityReached: ((Int) -> Void)?
     /// How many photos fit across the screen. With Keep on line set, the
     /// line can hold more, and the rest are reached by scrolling.
     var visibleCount = 8
@@ -59,7 +64,7 @@ final class Line: ObservableObject {
 
     /// Keep on line, from the menu bar: how many photos the line keeps, or
     /// nil for as many as fit across the screen.
-    nonisolated static let keepChoices = [25, 50, 100]
+    nonisolated static let keepChoices = [9, 25, 50, 100]
     nonisolated static var keepOnLine: Int? {
         get {
             let n = UserDefaults.standard.integer(forKey: "keepOnLine")
@@ -75,6 +80,7 @@ final class Line: ObservableObject {
     }
 
     var liveCount: Int { items.filter { !$0.falling }.count }
+    var liveImageCount: Int { items.filter { !$0.falling && !$0.isRecording }.count }
 
     private let storeKey = "pegged"
     private let defaults: UserDefaults
@@ -172,18 +178,17 @@ final class Line: ObservableObject {
     func hang(_ url: URL, quietly: Bool = false, flying: Bool = false, thumbnail: NSImage? = nil) -> UUID? {
         guard !items.contains(where: { $0.url == url && !$0.falling }),
               let thumb = thumbnail ?? makeThumbnail(url) else { return nil }
+        guard liveCount < maxItems else {
+            onCapacityReached?(maxItems)
+            return nil
+        }
         var item = Pegged(url: url, thumb: thumb)
         item.flying = flying
         items.append(item)
         scroll = 0
-        // A full line lets the oldest photo fall off the far end. Only one: a
-        // line hung on a wider screen keeps its length here instead of losing
-        // several photos to a single capture.
-        if liveCount > maxItems, let oldest = items.first(where: { !$0.falling }) {
-            letGo(oldest.id)
-        }
         save()
         if !quietly { play("Tink", volume: 0.35) }
+        if liveCount == maxItems { onCapacityReached?(maxItems) }
         return item.id
     }
 
@@ -248,6 +253,43 @@ final class Line: ObservableObject {
 
     // MARK: Actions on one photo
 
+    /// Every image on the line, including offscreen cards, in hanging order.
+    /// Prepare the batch before clearing the clipboard so a missing file does
+    /// not destroy what the user already copied.
+    @discardableResult
+    func copyAllImages(to pasteboard: NSPasteboard = .general) throws -> Int {
+        let images = items.filter { !$0.falling && !$0.isRecording }
+        guard !images.isEmpty else { return 0 }
+        var singleImage: Data?
+        for item in images {
+            guard let png = pngData(item.url), NSBitmapImageRep(data: png) != nil else {
+                throw ImageCopyError.unreadableImage
+            }
+            if images.count == 1 { singleImage = png }
+        }
+        pasteboard.clearContents()
+        let written: Bool
+        if let png = singleImage {
+            let entry = NSPasteboardItem()
+            entry.setData(png, forType: .png)
+            entry.setString(images[0].url.absoluteString, forType: .fileURL)
+            written = pasteboard.writeObjects([entry])
+        } else {
+            // Native URL writers preserve the entire file list across apps
+            // and after this process exits. Raster data would select only one.
+            written = pasteboard.writeObjects(images.map { $0.url as NSURL })
+        }
+        guard written, pasteboard.setString("1", forType: ClipboardWatcher.ownType) else {
+            throw ImageCopyError.clipboardUnavailable
+        }
+        // Fulfil every URL representation now, rather than leaving later
+        // items dependent on a live pasteboard writer in this process.
+        let copiedFiles = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL]
+        guard copiedFiles == images.map(\.url) else { throw ImageCopyError.clipboardUnavailable }
+        if let last = images.last { markCopied(last.id) }
+        return images.count
+    }
+
     /// Copies every photo the menu was asked about, one pasteboard item each:
     /// Finder and chat windows both take a list of files, and the picture data
     /// rides along so pasting into an editor still gives a picture.
@@ -265,6 +307,10 @@ final class Line: ObservableObject {
             return entry
         })
 
+        markCopied(id)
+    }
+
+    private func markCopied(_ id: UUID) {
         copiedID = id
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
             if self?.copiedID == id { self?.copiedID = nil }
@@ -327,28 +373,11 @@ final class Line: ObservableObject {
         }
     }
 
-    /// The oldest photo falling off a full line. Like the cross, a file from
-    /// Tendedero's folder goes to the Trash, or nothing would ever take it out
-    /// of that folder. If the Trash refuses it, it still leaves the line.
     /// Moves along a line that holds more than fit, from a scroll gesture.
     func scroll(by delta: CGFloat) {
         let most = CGFloat(max(0, items.count - visibleCount)) * Layout.spacing
         let next = min(most, max(0, scroll + delta))
         if next != scroll { scroll = next }
-    }
-
-    /// After Keep on line is lowered, the oldest photos past it go the way
-    /// of a full line.
-    func trim() {
-        while liveCount > maxItems, let oldest = items.first(where: { !$0.falling }) {
-            letGo(oldest.id)
-        }
-        scroll = 0
-    }
-
-    private func letGo(_ id: UUID) {
-        if isInInbox(id), trash(id, quietly: true) { return }
-        drop(id, quietly: true)
     }
 
     /// Inbox mode: keep the picked photos by moving them to the Desktop.

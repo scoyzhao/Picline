@@ -50,6 +50,14 @@
 
 /* GrabArea */
 "Copy" = "Copy";
+"Copy all images" = "Copy all images";
+"Copy failed" = "Copy failed";
+"9 photos (for WeChat)" = "9 photos (for WeChat)";
+"The line is full (%d photos)." = "The line is full (%d photos).";
+"Take some photos down to make room." = "Take some photos down to make room.";
+"Copied %d images" = "Copied %d images";
+"An image is missing or unreadable. Nothing was copied." = "An image is missing or unreadable. Nothing was copied.";
+"Could not write to the clipboard. Please try again." = "Could not write to the clipboard. Please try again.";
 "Open" = "Open";
 "Quick Look" = "Quick Look";
 "Markup" = "Markup";

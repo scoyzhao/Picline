@@ -5,6 +5,10 @@
 <h1 align="center">Picline</h1>
 
 <p align="center">
+<b>scoyzhao 的 macOS 定制分支：批量复制 · 9 张上限 · 满额保留旧图 · 简洁提醒</b>
+</p>
+
+<p align="center">
 连截几张图、连着复制几张图，剪贴板都只留最后一张 —— 把图挂成一排，用哪张取哪张。<br>
 Mac 菜单栏下的一条图片晾衣绳，另有一个同源的 Windows 版本。<br>
 多桌面通用 · 一次选中几张一起拖走 · 11 种界面语言
@@ -15,9 +19,76 @@ macOS 14+ · Windows 10 / 11 · 免费开源
 </p>
 
 <p align="center">
-<a href="https://github.com/Xinguangcuican/Picline/releases/latest"><b>↓ 下载最新版</b></a> ·
+<a href="#本分支更新"><b>查看本次更改</b></a> ·
+<a href="https://github.com/Xinguangcuican/Picline/releases/latest">上游原版下载</a> ·
 <a href="README.en.md">English</a>
 </p>
+
+## 本分支更新
+
+更新日期：**2026-11-05**。本仓库 fork 自 [Xinguangcuican/Picline](https://github.com/Xinguangcuican/Picline)，本次定制只修改 **macOS**，Windows 端保持上游实现。
+
+> 这些功能已在本机编译版中使用，尚未为本分支发布安装包。下面的上游下载链接不包含本次定制；需要这些功能时，请构建本分支源码。
+
+### 这次改了什么
+
+| 改动 | 原来的行为 | 现在的行为 |
+| --- | --- | --- |
+| 复制全部图片 | 需要先选中多张，再复制或拖拽 | 菜单栏和图片右键菜单新增「复制全部图片」，不必逐张选择，也包含屏幕外的挂图 |
+| 9 张上限 | 数量选项只有按屏幕容纳、25、50、100 | 新增「9 张（适合微信）」，明确限制为 9，不随屏幕宽度放宽 |
+| 满额处理 | 新图继续挂上，最早的图片自动掉落；应用收件箱中的文件还可能被移入废纸篓 | 到达上限时提示；满额后继续添加新图也提示，保留已有挂图并阻止新增 |
+| 调低上限 | 自动移除超出的旧图 | 不移除已有图片；数量降到上限以下后，才继续接收新图 |
+| 提醒样式 | 本次开发初版的信息重复、主次不清 | 一个状态图标配结果文字，支持浅色／深色，3 秒后自动消失，不抢焦点 |
+| 本机构建 | 依赖 Swift 5.9+ 的常规构建流程 | 额外提供旧工具链兼容代码、本机构建脚本和定向检查，不改系统工具链 |
+
+### 怎么使用
+
+1. 正常截图或挂图，无须改变原来的收图方式。
+2. 需要 9 张上限时，在菜单栏选择 **保留数量 → 9 张（适合微信）**。该选项不会自动开启，原来的数量设置会保留。
+3. 点击菜单栏或任意图片右键菜单中的 **复制全部图片**。
+4. 切到微信输入框、访达文件夹或其他目标软件，按 `Command + V` 粘贴。
+
+复制按晾衣绳上的原排列顺序进行，不拼成长图、不缩小原图，也不会把图片从绳子上取下。多张使用系统原生文件列表，单张同时提供图片数据；目标软件可能按图片或文件附件接收，具体取决于该软件。
+
+### 提醒效果
+
+以下是实际 AppKit 界面的渲染图，不是概念示意图。
+
+| 已达到上限 | 复制成功 |
+| --- | --- |
+| <img src="docs/demo/feedback-capacity-light.png" width="320" alt="上限提醒：已挂满 9 张图片；取下部分图片后，即可继续添加。"> | <img src="docs/demo/feedback-copy-light.png" width="320" alt="复制成功：已复制 9 张图片。"> |
+
+<details>
+<summary>查看深色模式</summary>
+
+<img src="docs/demo/feedback-capacity-dark.png" width="320" alt="深色模式的图片数量上限提醒。">
+
+</details>
+
+### 使用边界
+
+- 「复制全部图片」跳过录屏和正在移除的项目；没有可复制图片时，菜单项置灰。
+- 复制前检查图片是否可读取。源文件丢失或不可读时，提示失败，不先清空原有剪贴板，也不悄悄只复制剩余图片。
+- 数量上限统计晾衣绳上的全部项目，录屏也占一个位置。达到上限的提示适用于所有数量选项，不仅是 9 张。
+- 调低上限后，已有数量可能暂时超过上限；原图保留，直到数量低于上限才允许继续挂图。内容去重规则不变。
+- 这里只取消「超限自动移除」。手动取下、丢弃或移到废纸篓仍沿用上游规则，应用收件箱里的文件可能被移入废纸篓。
+- 本次新增文案提供简体中文和英文，其他语言缺少的新文案回退到英文。
+
+### 验证情况
+
+| 项目 | 结果 |
+| --- | --- |
+| 微信粘贴 | 用户在文件传输助手中确认红、绿、蓝 3 张测试图同时出现；未发送消息 |
+| 访达粘贴 | 一次粘贴 3 个文件，并验证文件内容与原图一致 |
+| 独立进程读取剪贴板 | 复制进程退出后，3 个图片文件地址仍完整保留 |
+| 定向功能检查 | 全部复制、原顺序、屏幕外图片、PNG/JPEG、空绳、缺失文件、跳过录屏、9 张批次及数量边界检查通过 |
+| 提醒界面 | 浅色／深色渲染、文字不重叠、透明圆角、替换旧提醒、非激活窗口及自动关闭检查通过 |
+| Codex 粘贴 | 受界面自动化限制，尚未完成实际粘贴验证，不保证所有版本的接收行为 |
+| 完整 XCTest | 本机旧开发工具链无法运行 SwiftPM/XCTest，未运行完整套件；定向检查不能替代完整回归 |
+
+构建及检查方法见下方「从源码构建」，逐项更新记录见 [CHANGELOG.md](CHANGELOG.md)。
+
+---
 
 <p align="center">
   <img src="docs/demo/picline-demo.gif" width="880" alt="鼠标推到屏幕顶部，绳子落下，新截图依次挂上去">
@@ -27,7 +98,7 @@ macOS 14+ · Windows 10 / 11 · 免费开源
 
 ## 这是什么
 
-Picline 是 [Tendedero](https://github.com/alejandrobujan/tendedero) 的一个修改分支。上游由 Alejandro Buján 编写；**老张** 在它上面强化了收图能力（读第三方截图工具的剪贴板、跨工具去重、指定打开图片的应用），本仓库又修好了多桌面，加了隔空投送、长按预览、访达入口，以及一次选中几张一起用。
+Picline 是 [Tendedero](https://github.com/alejandrobujan/tendedero) 的一个修改分支。原项目由 Alejandro Buján 编写；**老张** 在它上面强化了收图能力（读第三方截图工具的剪贴板、跨工具去重、指定打开图片的应用），[Picline 上游](https://github.com/Xinguangcuican/Picline) 又修好了多桌面，加了隔空投送、长按预览、访达入口，以及一次选中几张一起用。本分支在保留这些功能的基础上，新增了上面列出的 macOS 定制。
 
 两个平台，同一套交互：
 
@@ -40,9 +111,9 @@ Picline 是 [Tendedero](https://github.com/alejandrobujan/tendedero) 的一个�
 
 ---
 
-## 下载
+## 上游下载
 
-都在 [Releases](https://github.com/Xinguangcuican/Picline/releases/latest) 页面，按平台取。
+上游原版安装包在 [Releases](https://github.com/Xinguangcuican/Picline/releases/latest) 页面，按平台取；**不包含本分支新增功能**。
 
 | 平台 | 文件 | 说明 |
 | --- | --- | --- |
@@ -97,11 +168,12 @@ Picline 是 [Tendedero](https://github.com/alejandrobujan/tendedero) 的一个�
 
 ## 右键菜单
 
-菜单里每一项都**对整组生效**：选中三张，在其中任意一张上右键，「存储到桌面」就是三张一起存；只单击一张时只对那一张。标题会带张数，例如「存储到桌面 · 3 张」。
+原有的复制、打开、存储等菜单项**对选中组生效**：选中三张，在其中任意一张上右键，「存储到桌面」就是三张一起存；只单击一张时只对那一张。标题会带张数，例如「存储到桌面 · 3 张」。新增的**复制全部图片**始终作用于整条晾衣绳，不受当前选中状态影响。
 
 | 菜单项 | 做什么 | 起始版本 |
 | --- | --- | --- |
 | 复制 / 打开 / 快速查看 / 标记 | 复制只在这里（单击不再复制）；复制一组会写成多个文件 | 0.1.9 起；0.2.6 改为对整组生效、单击不再复制 |
+| 复制全部图片 | 复制整条绳子上的所有图片，跳过录屏，原图仍然保留 | 本分支新增 |
 | 在访达中显示 | 定位文件，一组就一起选中 | 0.1.9 |
 | 隔空投送 | 系统窗口列出附近设备，一组就是一次投送多张 | 0.2.1 |
 | 存储到桌面 | 每张存一份；截图文件夹里的移过去，别处来的复制一份 | 0.1.9 |
@@ -122,11 +194,52 @@ Picline 是 [Tendedero](https://github.com/alejandrobujan/tendedero) 的一个�
 
 ## 从源码构建
 
+### 常规构建
+
+需要 macOS 14+ 和支持 Swift 5.9+ 的开发工具链。保留上游构建与打包方式：
+
 ```sh
 scripts/build-picline.sh release    # 通用二进制（arm64 + x86_64），产物在 build/Picline.app
 scripts/package-dmg.sh              # 打包成 build/Picline-<版本>.dmg
-swift test --disable-sandbox        # 88 项测试
-swift scripts/check-strings.swift   # 83 条文案 × 11 种语言
+swift test --disable-sandbox        # 完整 XCTest 套件
+swift scripts/check-strings.swift   # 检查文案键与本地化
+```
+
+### 本机旧工具链兼容构建
+
+本次开发的 Mac 使用 Swift 5.8.1，常规 SwiftPM 构建不可用，因此额外提供直接调用编译器的脚本。
+
+**前提：** 当前 Mac 已安装 `/Applications/Picline.app`，脚本复用它的 `Info.plist` 和图标。该脚本只构建当前 CPU 架构，不生成通用包；不安装或升级开发工具，也不会自动替换正在运行的应用。
+
+```sh
+/bin/bash scripts/build-local.sh         # 生成 build/local/Picline.app，完成本地签名检查
+/bin/bash scripts/build-local.sh check   # 执行本次新增功能的定向检查，不使用用户剪贴板
+```
+
+兼容代码仅在 `compiler(<5.9)` 时启用，较新的编译器继续使用原生接口。应用标识保持不变，现有设置与挂图记录继续使用。
+
+### 提醒预览与检查
+
+先执行上面的定向检查以生成检查程序，再运行以下命令。预览会短暂显示测试提示，但不会发送消息或使用用户剪贴板。
+
+```sh
+cp -R Sources/Tendedero/Resources/zh-Hans.lproj build/local/
+build/local/check-copy-all --preview-feedback -interfaceLanguage zh-Hans
+build/local/check-copy-all --preview-feedback --dark -interfaceLanguage zh-Hans
+```
+
+渲染图位于 `build/copy-all-check/feedback-*.png`。`scripts/inspect-pasteboard.swift` 用于手动排查系统剪贴板的文件列表；它会读取并打印剪贴板元数据，日常使用 Picline 不需要运行。
+
+`build/` 下的编译产物、测试图、偏好设置快照和旧版备份均不提交到仓库；README 引用的三张纯界面预览单独保存在 `docs/demo/`。
+
+### 同步本分支
+
+本地仓库默认推送到自己的 fork，原项目作为 `upstream` 保留：
+
+```sh
+git remote -v
+# origin:   https://github.com/scoyzhao/Picline.git
+# upstream: https://github.com/Xinguangcuican/Picline.git
 ```
 
 ---

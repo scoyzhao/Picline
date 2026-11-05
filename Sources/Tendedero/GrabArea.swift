@@ -85,6 +85,7 @@ enum CardMenu {
         // Items say themselves whether they can be used.
         menu.autoenablesItems = false
         menu.addItem(ClosureMenuItem(counted(L("Copy"))) { line.copy(id) })
+        menu.addItem(CopyAllImagesMenu.make(for: line))
         menu.addItem(ClosureMenuItem(counted(L("Open"))) { line.open(id) })
         // One photo each: Quick Look already pages through the whole line, and
         // Markup edits the one file it was given.

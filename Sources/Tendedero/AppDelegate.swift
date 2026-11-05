@@ -157,6 +157,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         host.sizingOptions = []
         panel = LinePanel(content: host)
         panel.placeOnScreen()
+        line.onCapacityReached = { limit in LineFeedback.capacityReached(limit) }
         updateCapacity()
 
         if Inbox.isEnabled { Inbox.apply() }
@@ -210,7 +211,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                     // Opened on purpose counts for the Space it was opened on.
                     if name == NSWorkspace.activeSpaceDidChangeNotification { self?.openedOnPurpose = false }
                     self?.refresh()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
                         self?.refresh()
                         // Once the switch animation has settled: if macOS left
                         // the window behind on the Space we came from, make it
@@ -394,9 +395,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let screen = from.flatMap { from in
             NSScreen.screens.first { NSMouseInRect(CGPoint(x: from.midX, y: from.midY), $0.frame, false) }
         }
-        // Every capture brings the line down before it hangs, on the screen it
-        // was taken on. On a full line the oldest photo then falls in view as
-        // the new one flies in.
+        // Every capture brings the line down before it hangs. A full line
+        // keeps the existing cards and reports its limit instead.
         comeDown(on: screen)
         guard let id = line.hang(url, flying: from != nil, thumbnail: thumbnail) else {
             // Nothing hung after all, so an empty line goes away again.
@@ -732,7 +732,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         guard n != Line.keepOnLine else { return }
         Line.keepOnLine = n
         updateCapacity()
-        line.trim()
+        line.scroll = 0
     }
 
     private func setSize(_ size: Layout.Size) {
@@ -747,7 +747,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let usable = panel.frame.width - 200
         let fits = max(3, min(12, Int(usable / Layout.spacing)))
         line.visibleCount = fits
-        line.maxItems = max(fits, Line.keepOnLine ?? fits)
+        line.maxItems = Line.keepOnLine ?? fits
     }
 
     // MARK: Menu bar
@@ -786,6 +786,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             toggleItem.keyEquivalentModifierMask = shortcut.modifiers
         }
         menu.addItem(toggleItem)
+
+        menu.addItem(CopyAllImagesMenu.make(for: line))
 
         let clearItem = ClosureMenuItem(L("Take everything down")) { [weak self] in
             self?.line.clear()
@@ -917,7 +919,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         fit.state = Line.keepOnLine == nil ? .on : .off
         keeps.addItem(fit)
         for n in Line.keepChoices {
-            let item = ClosureMenuItem(String(format: L("%d photos"), n)) { [weak self] in self?.setKeep(n) }
+            let title = n == 9 ? L("9 photos (for WeChat)") : String(format: L("%d photos"), n)
+            let item = ClosureMenuItem(title) { [weak self] in self?.setKeep(n) }
             item.state = Line.keepOnLine == n ? .on : .off
             keeps.addItem(item)
         }

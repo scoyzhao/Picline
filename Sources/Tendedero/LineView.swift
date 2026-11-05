@@ -9,9 +9,9 @@ enum Layout {
 
         var scale: CGFloat {
             switch self {
-            case .small: 0.8
-            case .medium: 1
-            case .large: 1.35
+            case .small: return 0.8
+            case .medium: return 1
+            case .large: return 1.35
             }
         }
     }

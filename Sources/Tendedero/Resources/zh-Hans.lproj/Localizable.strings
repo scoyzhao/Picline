@@ -54,6 +54,14 @@
 
 /* GrabArea */
 "Copy" = "复制";
+"Copy all images" = "复制全部图片";
+"Copy failed" = "复制失败";
+"9 photos (for WeChat)" = "9 张（适合微信）";
+"The line is full (%d photos)." = "已挂满 %d 张图片";
+"Take some photos down to make room." = "取下部分图片后，即可继续添加。";
+"Copied %d images" = "已复制 %d 张图片";
+"An image is missing or unreadable. Nothing was copied." = "有图片已丢失或无法读取，本次未复制。";
+"Could not write to the clipboard. Please try again." = "无法写入剪贴板，请重试。";
 "Open" = "打开";
 "Quick Look" = "快速查看";
 "Markup" = "标记";

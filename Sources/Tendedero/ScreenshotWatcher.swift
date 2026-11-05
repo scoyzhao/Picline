@@ -71,7 +71,7 @@ final class ScreenshotWatcher {
         let path = folder.path
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let fd = open(path, O_EVTONLY)
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
                 guard let self, self.generation == run, !self.stopped else {
                     if fd >= 0 { close(fd) }
                     return
@@ -146,7 +146,7 @@ final class ScreenshotWatcher {
         let recordings = acceptsRecordings
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let snapshot = Self.listFolder(folder, recursive: recursive, tagged: tagged, recordings: recordings)
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { [weak self] in
                 guard let self, self.generation == run, !self.stopped else { return }
                 self.listing = false
                 if let snapshot {

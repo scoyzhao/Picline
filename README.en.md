@@ -4,6 +4,8 @@
 
 <h1 align="center">Picline</h1>
 
+> **macOS fork note:** This is [scoyzhao/Picline](https://github.com/scoyzhao/Picline), based on [Xinguangcuican/Picline](https://github.com/Xinguangcuican/Picline). It adds Copy All Images, an optional nine-item limit, non-destructive capacity handling, and compact feedback. See the [Chinese README](README.md#本分支更新) for usage, screenshots, build instructions, and verification limits. The upstream release downloads below do not include these custom changes. Windows is unchanged.
+
 <p align="center">
 Take five screenshots in a row and the clipboard keeps only the last one. Picline hangs them on a line at the top of the screen, so you pick the one you want.<br>
 A photo line in the macOS menu bar, with a sibling build for Windows.<br>

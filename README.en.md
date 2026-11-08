@@ -4,9 +4,13 @@
 
 <h1 align="center">Picline</h1>
 
-> **macOS fork note:** This is [scoyzhao/Picline](https://github.com/scoyzhao/Picline), based on [Xinguangcuican/Picline](https://github.com/Xinguangcuican/Picline). It adds Copy All Images, an optional nine-item limit, non-destructive capacity handling, and compact feedback. See the [Chinese README](README.md#本分支更新) for usage, screenshots, build instructions, and verification limits. The upstream release downloads below do not include these custom changes. Windows is unchanged.
+> **macOS fork note:** This is [scoyzhao/Picline](https://github.com/scoyzhao/Picline), based on [Xinguangcuican/Picline](https://github.com/Xinguangcuican/Picline). It adds Copy All Images, AirDrop All Images, an optional nine-item limit, non-destructive capacity handling, and compact feedback. See the [Chinese README](README.md#本分支更新) for usage, screenshots, build instructions, and verification limits. The upstream release downloads below do not include these custom changes. Windows is unchanged.
 
 **Verified on macOS:** User testing confirmed batch image pasting into both WeChat and Codex. Batch file pasting into Finder was also verified.
+
+**AirDrop All Images (2026-11-07):** Right-click any hanging image and choose **Send all images via AirDrop · N photos** to hand every live image, including offscreen cards, to the native AirDrop window. The original single/selected-group action is unchanged. Recordings and falling cards are excluded; original files, cards, and selection remain intact. Missing/unreadable files abort the whole batch with an error. Choosing a recipient remains a manual step, and opening the window is not reported as a successful transfer.
+
+Targeted checks and native service acceptance of complete three- and nine-image batches passed. On 2026-11-08, GUI testing confirmed that both context-menu entries coexist, the three-image action and the original single-image action open the native AirDrop window, and all three test cards remain after cancellation. No recipient was selected and no files were sent, so actual receipt on another device is not yet verified. See the Chinese README for the isolated preview and exact verification limits.
 
 <p align="center">
 Take five screenshots in a row and the clipboard keeps only the last one. Picline hangs them on a line at the top of the screen, so you pick the one you want.<br>

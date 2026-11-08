@@ -19,6 +19,21 @@ if [[ "${1:-app}" == check ]]; then
   exec "$OUTPUT/check-copy-all" "${@:2}"
 fi
 
+if [[ "${1:-app}" == check-airdrop || "${1:-app}" == airdrop-preview ]]; then
+  xcrun swiftc -target "$(uname -m)-apple-macosx14.0" -module-name Tendedero \
+    "${TEST_SOURCES[@]}" "$PWD/scripts/check-airdrop-all.swift" -o "$OUTPUT/check-airdrop-all"
+  if [[ "$1" == check-airdrop ]]; then exec "$OUTPUT/check-airdrop-all" "${@:2}"; fi
+  PREVIEW="$OUTPUT/AirDropCheck.app"
+  mkdir -p "$PREVIEW/Contents/MacOS" "$PREVIEW/Contents/Resources"
+  cp "$OUTPUT/check-airdrop-all" "$PREVIEW/Contents/MacOS/AirDropCheck"
+  cp scripts/airdrop-check-Info.plist "$PREVIEW/Contents/Info.plist"
+  for resource in Sources/Tendedero/Resources/*.lproj; do cp -R "$resource" "$PREVIEW/Contents/Resources/"; done
+  codesign --force --sign - "$PREVIEW"
+  codesign --verify --strict "$PREVIEW"
+  echo "Built isolated AirDrop preview: $PREVIEW"
+  exit 0
+fi
+
 xcrun swiftc -O -target "$(uname -m)-apple-macosx14.0" -module-name Tendedero \
   "${SOURCES[@]}" -o "$APP/Contents/MacOS/Picline"
 # Preserve this installation's application identity and existing preferences.

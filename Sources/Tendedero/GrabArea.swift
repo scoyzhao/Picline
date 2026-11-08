@@ -68,10 +68,8 @@ struct GrabArea: NSViewRepresentable {
 enum CardMenu {
     static func make(for item: Pegged, on line: Line) -> NSMenu {
         let id = item.id
-        // Everything below acts on what is picked out. Right-clicking one of
-        // three chosen photos means all three; right-clicking a photo that is
-        // not part of the group means just that photo. One pick counts as one,
-        // so a plain click needs no special case.
+        // Most actions use the selection; the explicit all-image actions do not.
+        // Right-clicking a chosen photo acts on the group, otherwise just that photo.
         let group = line.targets(including: id)
         let count = group.count
         /// "Save to Desktop · 3 photos" while a group is picked out. The
@@ -99,6 +97,7 @@ enum CardMenu {
         airdrop.isEnabled = !group.isEmpty
             && group.allSatisfy { FileManager.default.fileExists(atPath: $0.url.path) }
         menu.addItem(airdrop)
+        menu.addItem(AirDropAllImagesMenu.make(for: line))
         let inInbox = group.contains { line.isInInbox($0.id) }
         if inInbox {
             menu.addItem(ClosureMenuItem(counted(L("Save to Desktop"))) { line.saveToDesktop(id) })

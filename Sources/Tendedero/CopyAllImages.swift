@@ -49,6 +49,10 @@ enum LineFeedback {
         show(title: L("Copy failed"), symbol: "exclamationmark.circle", accent: .systemRed, detail: message)
     }
 
+    static func airdropFailed(_ message: String) {
+        show(title: L("AirDrop failed"), symbol: "exclamationmark.circle", accent: .systemRed, detail: message)
+    }
+
     private static func color(_ red: CGFloat, _ green: CGFloat, _ blue: CGFloat, alpha: CGFloat = 1) -> NSColor {
         NSColor(srgbRed: red / 255, green: green / 255, blue: blue / 255, alpha: alpha)
     }

@@ -67,6 +67,10 @@
 "Markup" = "标记";
 "Show in Finder" = "在访达中显示";
 "Send via AirDrop" = "隔空投送";
+"Send all images via AirDrop" = "隔空投送全部图片";
+"AirDrop failed" = "隔空投送失败";
+"An image is missing or unreadable. Nothing was sent." = "有图片已丢失或无法读取，本次未投送。";
+"AirDrop is unavailable. Check Wi-Fi and Bluetooth, then try again." = "隔空投送暂不可用，请检查 Wi-Fi 和蓝牙后重试。";
 "Save to Desktop" = "存储到桌面";
 "Discard" = "丢弃";
 "Take down" = "取下";

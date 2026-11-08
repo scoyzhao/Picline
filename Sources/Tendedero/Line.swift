@@ -498,6 +498,16 @@ final class Line: ObservableObject {
         }
     }
 
+    /// Independent of the selection: share every live image in hanging order.
+    @discardableResult
+    func airdropAllImages(present: @MainActor ([URL]) throws -> Void = AirDropImages.present) throws -> Int {
+        let urls = items.filter { !$0.falling && !$0.isRecording }.map(\.url)
+        guard !urls.isEmpty else { return 0 }
+        try AirDropImages.validate(urls)
+        try present(urls)
+        return urls.count
+    }
+
     // MARK: Breeze
 
     /// Every so often a little wind moves the line. It is the detail that

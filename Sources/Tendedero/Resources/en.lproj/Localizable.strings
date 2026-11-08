@@ -108,3 +108,7 @@
 "Hold ⌃ Control" = "Hold ⌃ Control";
 "Hold ⇧ Shift" = "Hold ⇧ Shift";
 "Send via AirDrop" = "Send via AirDrop";
+"Send all images via AirDrop" = "Send all images via AirDrop";
+"AirDrop failed" = "AirDrop failed";
+"An image is missing or unreadable. Nothing was sent." = "An image is missing or unreadable. Nothing was sent.";
+"AirDrop is unavailable. Check Wi-Fi and Bluetooth, then try again." = "AirDrop is unavailable. Check Wi-Fi and Bluetooth, then try again.";
